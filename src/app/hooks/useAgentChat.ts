@@ -114,7 +114,10 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
     });
   }, []);
 
-  const localizeMessage = useCallback((message?: string) => localizeStreamMessage(locale, message), [locale]);
+  const localizeMessage = useCallback(
+    (message?: string) => localizeStreamMessage(locale, message),
+    [locale]
+  );
 
   // Keep one active-thread pointer so route changes/reloads restore the same conversation.
   useEffect(() => {
@@ -556,7 +559,6 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
       threadId,
       storage,
       appendProgressMessage,
-      formatStageLabel,
       localizeMessage,
       pendingClarification,
       language,
@@ -590,7 +592,7 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
 
   /**
    * Start a completely new conversation — new thread ID, clear messages.
-  * Never calls any external service. Everything stays in localStorage.
+   * Never calls any external service. Everything stays in localStorage.
    */
   const startNewConversation = useCallback(() => {
     storage.deleteThreadById(threadId);

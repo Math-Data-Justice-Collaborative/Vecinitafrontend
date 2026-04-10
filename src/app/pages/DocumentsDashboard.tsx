@@ -2,10 +2,7 @@ import { useMemo, useState } from 'react';
 import { ExternalLink, Link2, Download } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { resolveApiBase } from '../lib/apiBaseResolution';
-import {
-  fetchDownloadUrlForSource,
-  type Source,
-} from '../services/documentsService';
+import { fetchDownloadUrlForSource, type Source } from '../services/documentsService';
 import { useDocumentsDashboardData } from '../hooks/useDocumentsDashboardData';
 import { filterSources, toggleSelectedTag } from '../lib/documentsFilter';
 

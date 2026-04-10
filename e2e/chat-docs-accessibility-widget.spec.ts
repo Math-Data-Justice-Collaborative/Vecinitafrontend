@@ -222,7 +222,7 @@ test.describe('Community flows', () => {
 
     await expect(widgetPanel.getByText('I need housing support resources')).toBeVisible();
     const safeLink = widgetPanel.getByRole('link', { name: 'Community Support Hub', exact: true });
-  await expect(safeLink).toBeVisible({ timeout: 30000 });
+    await expect(safeLink).toBeVisible({ timeout: 30000 });
 
     const [chatPopup] = await Promise.all([
       context.waitForEvent('page', { timeout: 30000 }),

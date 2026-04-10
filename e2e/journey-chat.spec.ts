@@ -228,7 +228,10 @@ test.describe('Journey Chat (J001-J008)', () => {
     await submitMainChatQuestion(page, question);
     await expect(page.getByText(question)).toBeVisible();
 
-    await page.locator('button:has-text("New chat"), button:has-text("Nuevo chat")').first().click();
+    await page
+      .locator('button:has-text("New chat"), button:has-text("Nuevo chat")')
+      .first()
+      .click();
     const questionInUserMessages = page
       .locator('[data-testid="chat-message"][data-message-role="user"]')
       .filter({ hasText: question });
@@ -464,8 +467,7 @@ test.describe('Journey Chat (J001-J008)', () => {
     const splashSuggestion = page
       .locator('main')
       .getByRole('button', {
-        name:
-          /What environmental concerns can I report in my neighborhood\?|¿Qué problemas ambientales puedo reportar en mi vecindario\?/i,
+        name: /What environmental concerns can I report in my neighborhood\?|¿Qué problemas ambientales puedo reportar en mi vecindario\?/i,
       })
       .first();
     await expect(splashSuggestion).toBeVisible();

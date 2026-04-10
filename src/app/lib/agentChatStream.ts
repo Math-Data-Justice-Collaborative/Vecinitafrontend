@@ -20,7 +20,8 @@ export function getAgentChatCopy(locale: AgentChatLocale): AgentChatCopy {
       locale === 'es'
         ? 'No pude generar una respuesta en este momento. Inténtalo de nuevo.'
         : 'I could not generate a response right now. Please try again.',
-    unexpectedError: locale === 'es' ? 'Ocurrió un error inesperado' : 'An unexpected error occurred',
+    unexpectedError:
+      locale === 'es' ? 'Ocurrió un error inesperado' : 'An unexpected error occurred',
     encounteredErrorPrefix:
       locale === 'es' ? 'Lo siento, encontré un error:' : 'Sorry, I encountered an error:',
   };

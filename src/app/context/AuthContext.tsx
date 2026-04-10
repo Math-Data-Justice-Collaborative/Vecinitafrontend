@@ -1,8 +1,11 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 
-const ADMIN_AUTH_ENABLED = (
-  import.meta.env.VITE_ADMIN_AUTH_ENABLED || import.meta.env.VITE_DEV_ADMIN_ENABLED || 'false'
-).toLowerCase() === 'true';
+const ADMIN_AUTH_ENABLED =
+  (
+    import.meta.env.VITE_ADMIN_AUTH_ENABLED ||
+    import.meta.env.VITE_DEV_ADMIN_ENABLED ||
+    'false'
+  ).toLowerCase() === 'true';
 const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || import.meta.env.VITE_DEV_ADMIN_EMAIL || '';
 const ADMIN_PASSWORD =
   import.meta.env.VITE_ADMIN_PASSWORD || import.meta.env.VITE_DEV_ADMIN_PASSWORD || '';
@@ -140,7 +143,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (_email: string, _password: string) => {
     return {
-      error: new Error('Admin sign-up is disabled. Provision credentials through environment configuration.'),
+      error: new Error(
+        'Admin sign-up is disabled. Provision credentials through environment configuration.'
+      ),
     };
   };
 

@@ -41,7 +41,6 @@ const GATEWAY_URL =
   import.meta.env.VITE_BACKEND_URL ||
   (import.meta.env.DEV ? '/api' : 'http://localhost:8004/api/v1');
 
-
 export interface AgentServiceTimeouts {
   requestMs: number;
   streamMs: number;
@@ -93,7 +92,6 @@ function emitAgentDebugEvent(scope: string, message: string, data?: unknown): vo
   );
 }
 
-
 export class AgentServiceError extends Error {
   constructor(
     message: string,
@@ -104,7 +102,6 @@ export class AgentServiceError extends Error {
     this.name = 'AgentServiceError';
   }
 }
-
 
 /**
  * Normalise a raw agent config payload into the canonical {@link AgentConfig}

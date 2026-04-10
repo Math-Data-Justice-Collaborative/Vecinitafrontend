@@ -49,7 +49,10 @@ export async function fetchDocumentTagStats(apiBase: string, limit = 100): Promi
   }));
 }
 
-export async function fetchDownloadUrlForSource(apiBase: string, sourceUrl: string): Promise<string> {
+export async function fetchDownloadUrlForSource(
+  apiBase: string,
+  sourceUrl: string
+): Promise<string> {
   const response = await fetch(
     `${apiBase}/documents/download-url?source_url=${encodeURIComponent(sourceUrl)}`
   );

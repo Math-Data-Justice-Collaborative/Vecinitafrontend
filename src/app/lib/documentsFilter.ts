@@ -5,7 +5,8 @@ export function filterSources(sources: Source[], search: string, selectedTags: s
   const normalizedSelectedTags = selectedTags.map((tag) => tag.toLowerCase());
 
   return sources.filter((source) => {
-    const searchable = `${source.url} ${source.title ?? ''} ${source.source_domain ?? ''}`.toLowerCase();
+    const searchable =
+      `${source.url} ${source.title ?? ''} ${source.source_domain ?? ''}`.toLowerCase();
     if (query && !searchable.includes(query)) {
       return false;
     }
