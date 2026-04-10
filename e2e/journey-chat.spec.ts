@@ -183,6 +183,28 @@ async function installSuggestionJourneyStream(page: Page): Promise<void> {
   });
 }
 
+const J004_MOCK_SOURCE_URL = 'https://example.com/doc';
+const J004_MOCK_SOURCE_TITLE = 'E2E source';
+
+async function installDocumentsOverviewFixtureForJ004(page: Page): Promise<void> {
+  await page.route('**/documents/overview', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        sources: [{ url: J004_MOCK_SOURCE_URL, title: J004_MOCK_SOURCE_TITLE }],
+      }),
+    });
+  });
+  await page.route('**/documents/tags**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ tags: [] }),
+    });
+  });
+}
+
 test.describe('Journey Chat (J001-J008)', () => {
   test('J001 loads chat home', async ({ page }) => {
     await page.goto('/');
@@ -213,12 +235,13 @@ test.describe('Journey Chat (J001-J008)', () => {
     const docsHealth = await page.request.get('/api/v1/documents/overview');
     test.skip(!docsHealth.ok(), 'Requires documents backend availability');
 
+    await installDocumentsOverviewFixtureForJ004(page);
     await page.goto('/documents');
-    const link = page.locator('table tbody a[href^="http"]').first();
+    const link = page.getByRole('link', { name: new RegExp(J004_MOCK_SOURCE_TITLE, 'i') }).first();
     await expect(link).toBeVisible();
 
     const [popup] = await Promise.all([context.waitForEvent('page'), link.click()]);
-    await expect(popup).toHaveURL(/https?:\/\//);
+    await expect(popup).toHaveURL(J004_MOCK_SOURCE_URL);
     await popup.close();
   });
 
