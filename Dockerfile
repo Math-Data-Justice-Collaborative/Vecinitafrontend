@@ -49,8 +49,9 @@ RUN npm install -g serve
 # Copy built assets from builder
 COPY --from=builder /app/dist ./dist
 
-# Expose port
-EXPOSE 5173
+# Render (and other hosts) set PORT — default 10000 on Render Web Services.
+# Bind all interfaces so the platform health check / proxy can reach the process.
+EXPOSE 10000
 
-# Serve the application
-CMD ["serve", "-s", "dist", "-l", "5173"]
+# shell form so $PORT is honored at container start (do not hardcode Vite dev 5173)
+CMD ["sh", "-c", "exec serve -s dist --no-port-switching -l tcp://0.0.0.0:${PORT:-10000}"]
