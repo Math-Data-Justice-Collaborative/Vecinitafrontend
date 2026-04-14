@@ -51,4 +51,5 @@ jobs:
         if: steps.deploy_hook.outputs.configured == 'true'
         env:
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
-        run: curl --fail --silent --show-error -X POST "$RENDER_DEPLOY_HOOK_URL"
+        # `--` ensures a malformed secret (e.g. leading `-`) cannot be parsed as curl flags.
+        run: curl -fsS -X POST -- "$RENDER_DEPLOY_HOOK_URL"
