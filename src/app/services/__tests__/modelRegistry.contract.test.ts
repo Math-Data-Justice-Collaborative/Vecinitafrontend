@@ -20,7 +20,7 @@ describe('modelRegistry service contracts', () => {
         ok: true,
         json: async () => ({
           providers: [{ key: 'ollama', label: 'Ollama' }],
-          models: { ollama: ['llama3.1:8b'] },
+          models: { ollama: ['gemma3'] },
         }),
       })
       .mockResolvedValueOnce({
@@ -47,7 +47,7 @@ describe('modelRegistry service contracts', () => {
         ok: true,
         json: async () => ({
           providers: [{ key: 'ollama', label: 'Ollama' }],
-          models: { ollama: ['llama3.1:8b'] },
+          models: { ollama: ['gemma3'] },
         }),
       })
       .mockResolvedValueOnce({

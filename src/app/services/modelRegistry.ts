@@ -110,7 +110,7 @@ export function getDefaultLLM(registry: ModelRegistryData): { provider: string; 
   const firstModel = registry.llmProviders[firstProvider]?.models[0];
   return {
     provider: firstProvider || 'ollama',
-    model: firstModel || 'llama3.1:8b',
+    model: firstModel || 'gemma3',
   };
 }
 

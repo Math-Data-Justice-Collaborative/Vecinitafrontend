@@ -22,10 +22,10 @@ test.describe('Agent network regressions', () => {
         status: 200,
         contentType: 'application/json; charset=utf-8',
         body: JSON.stringify({
-          providers: [{ name: 'ollama', models: ['llama3.1:8b'], default: true }],
-          models: { ollama: ['llama3.1:8b'] },
+          providers: [{ name: 'ollama', models: ['gemma3'], default: true }],
+          models: { ollama: ['gemma3'] },
           defaultProvider: 'ollama',
-          defaultModel: 'llama3.1:8b',
+          defaultModel: 'gemma3',
         }),
       });
     });

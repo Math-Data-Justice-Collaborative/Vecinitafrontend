@@ -527,8 +527,8 @@ describe('AgentServiceClient', () => {
 
       const renderClient = new AgentServiceClient('https://vecinita-agent.onrender.com/api/v1');
       const mockConfig: AgentConfig = {
-        providers: [{ name: 'ollama', models: ['llama3.1:8b'], default: true }],
-        models: { ollama: ['llama3.1:8b'] },
+        providers: [{ name: 'ollama', models: ['gemma3'], default: true }],
+        models: { ollama: ['gemma3'] },
       };
 
       vi.mocked(fetch).mockResolvedValueOnce(jsonResponse(mockConfig));
@@ -552,8 +552,8 @@ describe('AgentServiceClient', () => {
 
       const renderClient = new AgentServiceClient('https://vecinita-gateway.onrender.com/api/v1');
       const mockConfig: AgentConfig = {
-        providers: [{ name: 'ollama', models: ['llama3.1:8b'], default: true }],
-        models: { ollama: ['llama3.1:8b'] },
+        providers: [{ name: 'ollama', models: ['gemma3'], default: true }],
+        models: { ollama: ['gemma3'] },
       };
 
       vi.mocked(fetch).mockResolvedValueOnce(jsonResponse(mockConfig));
@@ -596,18 +596,18 @@ describe('AgentServiceClient', () => {
       vi.mocked(fetch).mockResolvedValueOnce(
         jsonResponse({
           providers: [{ key: 'ollama', label: 'Ollama (Local)', default: true }],
-          models: { ollama: ['llama3.1:8b'] },
+          models: { ollama: ['gemma3'] },
           defaultProvider: 'ollama',
-          defaultModel: 'llama3.1:8b',
+          defaultModel: 'gemma3',
         })
       );
 
       const result = await renderClient.getConfig();
 
       expect(result.providers[0]?.name).toBe('ollama');
-      expect(result.providers[0]?.models).toEqual(['llama3.1:8b']);
+      expect(result.providers[0]?.models).toEqual(['gemma3']);
       expect(result.defaultProvider).toBe('ollama');
-      expect(result.defaultModel).toBe('llama3.1:8b');
+      expect(result.defaultModel).toBe('gemma3');
 
       locationSpy.mockRestore();
     });
