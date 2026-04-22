@@ -269,6 +269,52 @@ class AgentServiceClient {
     return this.buildEndpointUrl('/ask/config');
   }
 
+  private buildConfigFallbackUrls(): string[] {
+    const primaryUrl = this.buildConfigUrl().toString();
+    const candidates: string[] = [primaryUrl];
+    const seen = new Set(candidates);
+
+    const addCandidate = (candidate: string) => {
+      if (!candidate || seen.has(candidate)) {
+        return;
+      }
+      seen.add(candidate);
+      candidates.push(candidate);
+    };
+
+    const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+    const currentHostname = typeof window !== 'undefined' ? window.location.hostname : '';
+    const isCurrentHostLocal =
+      currentHostname === 'localhost' ||
+      currentHostname === '127.0.0.1' ||
+      currentHostname === '::1';
+
+    try {
+      const primary = new URL(primaryUrl);
+      if (primary.pathname.endsWith('/ask/config')) {
+        addCandidate(this.buildEndpointUrl('/config').toString());
+      } else if (primary.pathname.endsWith('/config')) {
+        addCandidate(this.buildEndpointUrl('/ask/config').toString());
+      }
+
+      const isLocalTarget =
+        primary.hostname === 'localhost' ||
+        primary.hostname === '127.0.0.1' ||
+        primary.hostname === '::1';
+      if (currentOrigin && isLocalTarget && !isCurrentHostLocal) {
+        addCandidate(new URL('/api/v1/ask/config', currentOrigin).toString());
+      }
+    } catch {
+      // Best-effort fallback set only.
+    }
+
+    if (currentOrigin) {
+      addCandidate(new URL('/api/v1/ask/config', currentOrigin).toString());
+    }
+
+    return candidates;
+  }
+
   /**
    * Ask a question and get a complete response (non-streaming).
    */
@@ -496,45 +542,53 @@ class AgentServiceClient {
    * Get agent configuration (available providers and models).
    */
   async getConfig(): Promise<AgentConfig> {
-    const url = this.buildConfigUrl().toString();
+    const configUrls = this.buildConfigFallbackUrls();
     const CONFIG_RETRY_ATTEMPTS = 3;
     const CONFIG_RETRY_DELAY_MS = 800;
     let lastError: unknown;
 
-    for (let attempt = 1; attempt <= CONFIG_RETRY_ATTEMPTS; attempt += 1) {
-      try {
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            Accept: 'application/json',
-          },
-        });
+    for (const url of configUrls) {
+      for (let attempt = 1; attempt <= CONFIG_RETRY_ATTEMPTS; attempt += 1) {
+        try {
+          const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+              Accept: 'application/json',
+            },
+          });
 
-        if (!response.ok) {
-          throw new AgentServiceError('Failed to fetch agent configuration', response.status);
-        }
-
-        const rawConfig = await parseJsonResponseOrThrow<unknown, AgentServiceError>(
-          response,
-          '/ask/config',
-          {
-            errorFactory: (message, statusCode, code) =>
-              new AgentServiceError(message, statusCode, code),
-            nonJsonHint: 'This usually indicates a gateway URL/proxy misconfiguration.',
-            invalidJsonHint: 'This usually indicates a gateway URL/proxy misconfiguration.',
+          if (!response.ok) {
+            throw new AgentServiceError('Failed to fetch agent configuration', response.status);
           }
-        );
-        return normalizeAgentConfig(rawConfig);
-      } catch (error) {
-        lastError = error;
-        const isLastAttempt = attempt === CONFIG_RETRY_ATTEMPTS;
-        const isRetriableNetworkError = !(error instanceof AgentServiceError);
 
-        if (isLastAttempt || !isRetriableNetworkError) {
-          break;
+          const rawConfig = await parseJsonResponseOrThrow<unknown, AgentServiceError>(
+            response,
+            '/ask/config',
+            {
+              errorFactory: (message, statusCode, code) =>
+                new AgentServiceError(message, statusCode, code),
+              nonJsonHint: 'This usually indicates a gateway URL/proxy misconfiguration.',
+              invalidJsonHint: 'This usually indicates a gateway URL/proxy misconfiguration.',
+            }
+          );
+          return normalizeAgentConfig(rawConfig);
+        } catch (error) {
+          lastError = error;
+          if (
+            error instanceof AgentServiceError &&
+            (error.code === 'INVALID_RESPONSE_FORMAT' || error.code === 'INVALID_JSON')
+          ) {
+            throw error;
+          }
+          const isLastAttempt = attempt === CONFIG_RETRY_ATTEMPTS;
+          const isRetriableNetworkError = !(error instanceof AgentServiceError);
+
+          if (isLastAttempt || !isRetriableNetworkError) {
+            break;
+          }
+
+          await new Promise((resolve) => setTimeout(resolve, CONFIG_RETRY_DELAY_MS));
         }
-
-        await new Promise((resolve) => setTimeout(resolve, CONFIG_RETRY_DELAY_MS));
       }
     }
 

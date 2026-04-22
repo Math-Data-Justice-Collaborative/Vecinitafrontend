@@ -625,6 +625,41 @@ describe('AgentServiceClient', () => {
       });
       expect(fetch).toHaveBeenCalledTimes(1);
     });
+
+    it('should fallback to current-origin gateway config when localhost target is unreachable', async () => {
+      const locationSpy = vi.spyOn(window, 'location', 'get').mockReturnValue({
+        hostname: 'vecinita-frontend.example.com',
+        origin: 'https://vecinita-frontend.example.com',
+        protocol: 'https:',
+      } as Location);
+
+      const prodClient = new AgentServiceClient('http://localhost:8004/api/v1');
+      const mockConfig: AgentConfig = {
+        providers: [{ name: 'ollama', models: ['gemma3'], default: true }],
+        models: { ollama: ['gemma3'] },
+      };
+
+      vi.mocked(fetch)
+        .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+        .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+        .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+        .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+        .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+        .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+        .mockResolvedValueOnce(jsonResponse(mockConfig));
+
+      const result = await prodClient.getConfig();
+
+      expect(result).toMatchObject(mockConfig);
+      expect(String(fetchMock.mock.calls[0]?.[0])).toBe(
+        'http://vecinita-frontend.example.com:8004/api/v1/ask/config'
+      );
+      expect(String(fetchMock.mock.calls[6]?.[0])).toBe(
+        'https://vecinita-frontend.example.com/api/v1/ask/config'
+      );
+
+      locationSpy.mockRestore();
+    });
   });
 
   describe('healthCheck', () => {
