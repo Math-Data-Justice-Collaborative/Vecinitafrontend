@@ -32,6 +32,7 @@ import {
   normalizeAgentApiBaseUrl,
   resolveGatewayUrl,
 } from '../lib/agentApiResolution';
+import { extractAssistantTextFromPayload } from '../lib/assistantMessageNormalization';
 import { parseJsonResponseOrThrow } from '../lib/responseParser';
 
 // Get gateway URL from environment or fallback to localhost
@@ -318,6 +319,36 @@ class AgentServiceClient {
   /**
    * Ask a question and get a complete response (non-streaming).
    */
+  private normalizeAskResponse(rawResponse: unknown): AgentResponse {
+    if (!rawResponse || typeof rawResponse !== 'object') {
+      throw new AgentServiceError('Agent response payload is malformed', 0, 'INVALID_ASK_PAYLOAD');
+    }
+
+    const response = rawResponse as Record<string, unknown>;
+    const answer = extractAssistantTextFromPayload(rawResponse);
+    const sources = Array.isArray(response.sources)
+      ? response.sources.filter((source): source is AgentResponse['sources'][number] => {
+          return (
+            Boolean(source) &&
+            typeof source === 'object' &&
+            typeof (source as Record<string, unknown>).title === 'string' &&
+            typeof (source as Record<string, unknown>).url === 'string'
+          );
+        })
+      : [];
+
+    return {
+      answer,
+      sources,
+      thread_id: typeof response.thread_id === 'string' ? response.thread_id : undefined,
+      suggested_questions: Array.isArray(response.suggested_questions)
+        ? response.suggested_questions.filter((item): item is string => typeof item === 'string')
+        : undefined,
+      language: typeof response.language === 'string' ? response.language : undefined,
+      model: typeof response.model === 'string' ? response.model : undefined,
+    };
+  }
+
   async ask(params: AskQueryParams): Promise<AgentResponse> {
     const url = this.buildEndpointUrl('/ask');
 
@@ -361,12 +392,18 @@ class AgentServiceClient {
         throw new AgentServiceError(`Agent request failed: ${errorText}`, response.status);
       }
 
-      return await parseJsonResponseOrThrow<AgentResponse, AgentServiceError>(response, '/ask', {
-        errorFactory: (message, statusCode, code) =>
-          new AgentServiceError(message, statusCode, code),
-        nonJsonHint: 'This usually indicates a gateway URL/proxy misconfiguration.',
-        invalidJsonHint: 'This usually indicates a gateway URL/proxy misconfiguration.',
-      });
+      const parsedResponse = await parseJsonResponseOrThrow<unknown, AgentServiceError>(
+        response,
+        '/ask',
+        {
+          errorFactory: (message, statusCode, code) =>
+            new AgentServiceError(message, statusCode, code),
+          nonJsonHint: 'This usually indicates a gateway URL/proxy misconfiguration.',
+          invalidJsonHint: 'This usually indicates a gateway URL/proxy misconfiguration.',
+        }
+      );
+
+      return this.normalizeAskResponse(parsedResponse);
     } catch (error) {
       clearTimeout(timeoutId);
 

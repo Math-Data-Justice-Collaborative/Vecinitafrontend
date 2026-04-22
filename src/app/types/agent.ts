@@ -23,6 +23,13 @@ export interface AgentResponse {
   model?: string;
 }
 
+export interface RenderPolicy {
+  allowMarkdown: boolean;
+  allowRawHtml: false;
+  remoteImageMode: 'link_only';
+  tableOverflowMode: 'horizontal_scroll';
+}
+
 export interface StreamEventThinking {
   type: 'thinking';
   message: string;

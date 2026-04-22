@@ -22,6 +22,7 @@ import {
   getAgentChatCopy,
   localizeStreamMessage,
 } from '../lib/agentChatStream';
+import { applyAssistantMarkdownPolicy } from '../lib/assistantMarkdownPolicy';
 
 interface UseAgentChatOptions {
   initialThreadId?: string;
@@ -436,6 +437,13 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
           });
         }
 
+        if (assistantContent.trim()) {
+          assistantContent = applyAssistantMarkdownPolicy(
+            assistantContent,
+            typeof window !== 'undefined' ? window.location.origin : undefined
+          );
+        }
+
         if (latestToolResults.size > 0) {
           const toolSummary = Array.from(latestToolResults.entries())
             .map(([toolName, summary]) => `• ${formatToolLabel(toolName)}\n  ${summary}`)
@@ -483,10 +491,14 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
 
           const fallbackAnswer = (fallbackResponse.answer || '').trim();
           if (fallbackAnswer) {
+            const normalizedFallbackAnswer = applyAssistantMarkdownPolicy(
+              fallbackAnswer,
+              typeof window !== 'undefined' ? window.location.origin : undefined
+            );
             const fallbackAssistantMessage: Message = {
               id: uuidv4(),
               role: 'assistant',
-              content: fallbackAnswer,
+              content: normalizedFallbackAnswer,
               sources: mapSources(fallbackResponse.sources || []),
               suggestedQuestions: resolveFollowUpSuggestions(fallbackResponse.suggested_questions),
               timestamp: new Date(),

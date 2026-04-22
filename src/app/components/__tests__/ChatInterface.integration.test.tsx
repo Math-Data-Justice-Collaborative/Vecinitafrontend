@@ -1,9 +1,21 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { ChatMessage } from '../ChatMessage';
 
 // Mock contexts and services
 vi.mock('@/app/services/agentService');
+
+vi.mock('../../context/LanguageContext', () => ({
+  useLanguage: () => ({ t: (key: string) => (key === 'sources' ? 'Sources' : key) }),
+}));
+
+vi.mock('../../context/AccessibilityContext', () => ({
+  useAccessibility: () => ({
+    settings: { screenReader: false },
+    speak: vi.fn(),
+  }),
+}));
 
 // Mock provider component for testing
 const MockProviders = ({ children }: { children: React.ReactNode }) => {
@@ -138,5 +150,30 @@ describe('Chat Interface Integration Tests', () => {
     mockMessages.forEach((msg) => {
       expect(screen.getByTestId(`message-${msg.id}`)).toBeInTheDocument();
     });
+  });
+
+  it('should display semantic assistant content without raw payload metadata rendering', () => {
+    render(
+      <MockProviders>
+        <ChatMessage
+          message={{
+            id: 'assistant-semantic',
+            role: 'assistant',
+            content:
+              'You can report concerns to the watershed council. [Learn more](https://wrwc.org/)',
+            timestamp: new Date(),
+            sources: [],
+          }}
+        />
+      </MockProviders>
+    );
+
+    expect(screen.getByText(/report concerns to the watershed council/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Learn more' })).toHaveAttribute(
+      'href',
+      'https://wrwc.org/'
+    );
+    expect(screen.queryByText(/model.*llama/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/total_duration/i)).not.toBeInTheDocument();
   });
 });

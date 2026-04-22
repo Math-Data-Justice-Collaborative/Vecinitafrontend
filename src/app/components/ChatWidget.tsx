@@ -202,7 +202,7 @@ export function ChatWidget({
         data-testid="chat-widget-panel"
         className={`fixed ${positionClasses[position]} flex flex-col shadow-2xl rounded-lg overflow-hidden border border-border transition-all ${
           isMinimized ? 'h-14' : 'h-[600px]'
-        } w-[400px] max-w-[calc(100vw-2rem)]`}
+        } w-[420px] max-w-[calc(100vw-2rem)]`}
         style={{ zIndex }}
       >
         {/* Header */}
@@ -277,7 +277,7 @@ export function ChatWidget({
           <>
             {/* Messages */}
             <div
-              className={`flex-1 overflow-y-auto bg-background ${theme === 'dark' ? 'dark' : ''}`}
+              className={`flex-1 overflow-y-auto overscroll-contain bg-background ${theme === 'dark' ? 'dark' : ''}`}
             >
               <div className="max-w-full">
                 {messages.length === 0 && (

@@ -117,7 +117,11 @@ export default function ChatPage() {
       <Card className="flex flex-1 flex-col overflow-hidden shadow-sm">
         <CardHeader className="p-0" />
         <CardContent className="flex-1 p-0">
-          <div ref={messagesContainerRef} className="h-full overflow-y-auto">
+          <div
+            ref={messagesContainerRef}
+            className="h-full overflow-y-auto overscroll-contain pb-2"
+            data-testid="chat-page-messages-container"
+          >
             {messages.length === 0 && (
               <div className="p-8 text-center text-muted-foreground">
                 <MessageSquare className="mx-auto mb-3 h-6 w-6" />
@@ -193,7 +197,7 @@ export default function ChatPage() {
         </CardContent>
 
         <Separator />
-        <CardFooter className="bg-background p-3">
+        <CardFooter className="sticky bottom-0 bg-background p-3">
           <form onSubmit={handleSubmit} className="flex w-full items-end gap-2">
             <textarea
               value={input}

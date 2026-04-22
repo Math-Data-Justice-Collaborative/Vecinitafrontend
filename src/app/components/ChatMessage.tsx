@@ -10,6 +10,7 @@ import type { Message as ConversationMessage } from '../hooks/useConversationSto
 import { Card } from './ui/card';
 import { Separator } from './ui/separator';
 import { cn } from './ui/utils';
+import { applyAssistantMarkdownPolicy, isSafeInlineImageUrl } from '../lib/assistantMarkdownPolicy';
 export type Message = ConversationMessage;
 
 interface ChatMessageProps {
@@ -22,6 +23,14 @@ export function ChatMessage({ message, onFeedbackSubmit }: ChatMessageProps): JS
   const { settings, speak } = useAccessibility();
   const isUser = message.role === 'user';
   const isToolSummary = !isUser && message.content.startsWith('Tool Summary');
+  const hasVisibleAssistantContent = Boolean((message.content || '').trim());
+  const assistantFallbackMessage = 'I could not generate a response right now. Please try again.';
+  const sanitizedAssistantMarkdown = !isUser
+    ? applyAssistantMarkdownPolicy(
+        message.content,
+        typeof window !== 'undefined' ? window.location.origin : undefined
+      )
+    : '';
 
   // Automatically read message when screen reader is enabled and it's an assistant message
   useEffect(() => {
@@ -76,7 +85,7 @@ export function ChatMessage({ message, onFeedbackSubmit }: ChatMessageProps): JS
             </Card>
           ) : !isUser ? (
             <div
-              className="text-sm sm:text-base text-foreground break-words"
+              className="text-sm sm:text-base text-foreground leading-relaxed break-words"
               onClick={handleTextClick}
             >
               <ReactMarkdown
@@ -97,6 +106,21 @@ export function ChatMessage({ message, onFeedbackSubmit }: ChatMessageProps): JS
                       {children}
                     </code>
                   ),
+                  table: ({ children }) => (
+                    <div className="mb-2 w-full overflow-x-auto">
+                      <table className="min-w-full border-collapse text-xs sm:text-sm">
+                        {children}
+                      </table>
+                    </div>
+                  ),
+                  th: ({ children }) => (
+                    <th className="border border-border bg-muted/40 px-2 py-1 text-left">
+                      {children}
+                    </th>
+                  ),
+                  td: ({ children }) => (
+                    <td className="border border-border px-2 py-1">{children}</td>
+                  ),
                   pre: ({ children }) => (
                     <pre className="mb-2 overflow-x-auto rounded-md border bg-background/60 p-3 text-xs sm:text-sm">
                       {children}
@@ -112,9 +136,38 @@ export function ChatMessage({ message, onFeedbackSubmit }: ChatMessageProps): JS
                       {children}
                     </a>
                   ),
+                  img: ({ src, alt }) => {
+                    const resolvedSrc = typeof src === 'string' ? src : '';
+                    const safeInline = isSafeInlineImageUrl(
+                      resolvedSrc,
+                      typeof window !== 'undefined' ? window.location.origin : undefined
+                    );
+
+                    if (!safeInline) {
+                      return (
+                        <a
+                          href={resolvedSrc}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary underline break-all"
+                        >
+                          {alt || resolvedSrc}
+                        </a>
+                      );
+                    }
+
+                    return (
+                      <img
+                        src={resolvedSrc}
+                        alt={alt || 'Assistant provided image'}
+                        className="my-2 max-h-72 w-auto max-w-full rounded border border-border object-contain"
+                        loading="lazy"
+                      />
+                    );
+                  },
                 }}
               >
-                {message.content}
+                {hasVisibleAssistantContent ? sanitizedAssistantMarkdown : assistantFallbackMessage}
               </ReactMarkdown>
             </div>
           ) : (

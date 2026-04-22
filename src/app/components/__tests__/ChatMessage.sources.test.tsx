@@ -100,6 +100,79 @@ describe('ChatMessage source attribution', () => {
     expect(markdownLink).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
+  it('renders wide markdown tables in a horizontally scrollable container', () => {
+    render(
+      <ChatMessage
+        message={{
+          id: 'assistant-table-1',
+          role: 'assistant',
+          content: '| Name | Details |\n| --- | --- |\n| River | Woonasquatucket Watershed |',
+          timestamp: new Date(),
+          sources: [],
+        }}
+      />
+    );
+
+    const table = screen.getByRole('table');
+    expect(table.parentElement).toHaveClass('overflow-x-auto');
+    expect(screen.getByText('Woonasquatucket Watershed')).toBeInTheDocument();
+  });
+
+  it('converts remote markdown images into external links instead of inline media', () => {
+    render(
+      <ChatMessage
+        message={{
+          id: 'assistant-image-remote-1',
+          role: 'assistant',
+          content: '![Flood map](https://example.org/flood-map.png)',
+          timestamp: new Date(),
+          sources: [],
+        }}
+      />
+    );
+
+    expect(screen.getByRole('link', { name: 'Flood map' })).toHaveAttribute(
+      'href',
+      'https://example.org/flood-map.png'
+    );
+    expect(screen.queryByRole('img', { name: 'Flood map' })).not.toBeInTheDocument();
+  });
+
+  it('strips raw html tags in assistant markdown rendering', () => {
+    render(
+      <ChatMessage
+        message={{
+          id: 'assistant-html-1',
+          role: 'assistant',
+          content: 'Safe text <script>alert("xss")</script> here',
+          timestamp: new Date(),
+          sources: [],
+        }}
+      />
+    );
+
+    expect(screen.getByText(/Safe text/)).toBeInTheDocument();
+    expect(screen.queryByText(/<script>/i)).not.toBeInTheDocument();
+  });
+
+  it('shows fallback message when assistant content is empty', () => {
+    render(
+      <ChatMessage
+        message={{
+          id: 'assistant-empty-1',
+          role: 'assistant',
+          content: '   ',
+          timestamp: new Date(),
+          sources: [],
+        }}
+      />
+    );
+
+    expect(
+      screen.getByText('I could not generate a response right now. Please try again.')
+    ).toBeInTheDocument();
+  });
+
   it('renders source cards linked to original URLs', () => {
     render(
       <ChatMessage

@@ -228,6 +228,41 @@ describe('ChatWidget', () => {
       });
     });
 
+    it('should render assistant markdown paragraph/list/link/code formatting', async () => {
+      const messages: Message[] = [
+        {
+          id: 'assistant-md-contract',
+          role: 'assistant',
+          content:
+            'Paragraph text.\n\n- Item one\n- Item two\n\n[Resource link](https://example.org)\n\n`inline code`',
+          timestamp: new Date(),
+          sources: [],
+        },
+      ];
+
+      vi.mocked(chatStateContextModule.useChatState).mockReturnValue({
+        ...createUseAgentChatReturn(),
+        messages,
+      });
+
+      render(
+        <TestWrapper>
+          <ChatWidget defaultOpen={true} />
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Paragraph text.')).toBeInTheDocument();
+        expect(screen.getByText('Item one')).toBeInTheDocument();
+      });
+
+      expect(screen.getByRole('link', { name: 'Resource link' })).toHaveAttribute(
+        'href',
+        'https://example.org'
+      );
+      expect(screen.getByText('inline code')).toBeInTheDocument();
+    });
+
     it('should display streaming indicator when loading', async () => {
       // Re-mock useAgentChat to return streaming state
       const streamingMock = createUseAgentChatReturn({

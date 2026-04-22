@@ -109,6 +109,23 @@ describe('AgentServiceClient', () => {
       );
     });
 
+    it('should normalize structured payloads that return assistant message.content', async () => {
+      vi.mocked(fetch).mockResolvedValueOnce(
+        jsonResponse({
+          model: 'llama3.2',
+          message: {
+            role: 'assistant',
+            content: 'Normalized from nested message content',
+          },
+          sources: [],
+        })
+      );
+
+      const result = await client.ask({ question: 'Nested payload response?' });
+      expect(result.answer).toBe('Normalized from nested message content');
+      expect(result.sources).toEqual([]);
+    });
+
     it('should include all query parameters', async () => {
       vi.mocked(fetch).mockResolvedValueOnce(jsonResponse({ answer: 'test', sources: [] }));
 
