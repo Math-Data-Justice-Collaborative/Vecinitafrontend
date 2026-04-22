@@ -23,6 +23,7 @@ import {
   localizeStreamMessage,
 } from '../lib/agentChatStream';
 import { applyAssistantMarkdownPolicy } from '../lib/assistantMarkdownPolicy';
+import { extractAssistantTextFromPayload } from '../lib/assistantMessageNormalization';
 
 interface UseAgentChatOptions {
   initialThreadId?: string;
@@ -322,7 +323,9 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
 
             case 'complete':
               sawCompleteEvent = true;
-              assistantContent = event.answer;
+              assistantContent = extractAssistantTextFromPayload({
+                answer: event.answer,
+              });
               assistantSources = event.sources || assistantSources;
               assistantSuggestedQuestions = resolveFollowUpSuggestions(
                 event.suggestedQuestions || event.suggested_questions

@@ -58,4 +58,18 @@ describe('assistant message normalization', () => {
       extractAssistantTextFromPayload({ answer: 'Primary answer', message: { content: 'Ignored' } })
     ).toBe('Primary answer');
   });
+
+  it('unwraps JSON-encoded answer strings that contain Ollama-style message content', () => {
+    const wrapped = JSON.stringify({
+      model: 'llama3.2',
+      message: { role: 'assistant', content: 'User-visible body only.' },
+    });
+    expect(extractAssistantTextFromPayload({ answer: wrapped })).toBe('User-visible body only.');
+  });
+
+  it('reads top-level response for generate-style payloads', () => {
+    expect(extractAssistantTextFromPayload({ response: '  From generate  ' })).toBe(
+      'From generate'
+    );
+  });
 });
