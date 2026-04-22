@@ -3,6 +3,7 @@ import path from 'path';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 
+// Default matches `frontend/.env.example` and root `.env.local.example` (gateway dev port 8004).
 const gatewayProxyTarget = process.env.VITE_GATEWAY_PROXY_TARGET || 'http://127.0.0.1:8004';
 
 export default defineConfig({
@@ -22,7 +23,7 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      // Proxy API requests to the backend gateway during development
+      // Proxy `/api` → `VITE_GATEWAY_PROXY_TARGET` (see `.env.example`); Vite rewrites bare `/api` paths to `/api/v1` for gateway compatibility.
       '/api': {
         target: gatewayProxyTarget,
         changeOrigin: true,

@@ -6,7 +6,6 @@ const host = process.env.E2E_HOST || '127.0.0.1';
 const baseURL = process.env.E2E_BASE_URL || `http://${host}:${port}`;
 
 export default defineConfig({
-  testDir: './e2e',
   timeout: 120_000,
   expect: {
     timeout: 15_000,
@@ -32,11 +31,18 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
+      testDir: './e2e',
       use: { ...devices['Desktop Chrome'] },
     },
     {
       name: 'firefox',
+      testDir: './e2e',
       use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'chromium-chat-gateway-smoke',
+      testDir: './tests/e2e',
+      use: { ...devices['Desktop Chrome'] },
     },
   ],
 });

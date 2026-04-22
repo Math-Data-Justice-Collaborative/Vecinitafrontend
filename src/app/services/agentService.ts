@@ -26,7 +26,7 @@ import type {
   AskQueryParams,
   StreamEvent,
   StreamEventComplete,
-} from '../types/agent';
+} from '../types/contracts';
 import {
   isDirectRenderAgentHost,
   normalizeAgentApiBaseUrl,

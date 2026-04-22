@@ -708,3 +708,62 @@ describe('singleton instance', () => {
     expect(agentService).toBeInstanceOf(AgentServiceClient);
   });
 });
+
+describe('User Story 1: VITE_GATEWAY_URL-style defaults', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  it('uses relative /api base when VITE_GATEWAY_URL is /api (dev proxy path)', async () => {
+    vi.stubEnv('VITE_GATEWAY_URL', '/api');
+    vi.stubEnv('VITE_BACKEND_URL', '');
+    vi.resetModules();
+
+    const { AgentServiceClient: Client } = await import('../agentService');
+    const locationSpy = vi.spyOn(window, 'location', 'get').mockReturnValue({
+      hostname: 'localhost',
+      origin: 'http://localhost:5173',
+      protocol: 'http:',
+    } as Location);
+
+    fetchMock.mockClear();
+    vi.mocked(fetch).mockResolvedValueOnce(jsonResponse({ answer: 'ok', sources: [] }));
+
+    const client = new Client();
+    await client.ask({ question: 'env-proxy' });
+
+    const askUrl = fetchMock.mock.calls.map((c) => String(c[0])).find((u) => u.includes('/ask'));
+    expect(askUrl).toBeDefined();
+    expect(askUrl).toContain('/api/ask');
+    expect(askUrl).toContain('question=env-proxy');
+
+    locationSpy.mockRestore();
+  });
+
+  it('uses absolute gateway base when VITE_GATEWAY_URL is an http URL', async () => {
+    vi.stubEnv('VITE_GATEWAY_URL', 'http://127.0.0.1:8004/api/v1');
+    vi.stubEnv('VITE_BACKEND_URL', '');
+    vi.resetModules();
+
+    const { AgentServiceClient: Client } = await import('../agentService');
+    const locationSpy = vi.spyOn(window, 'location', 'get').mockReturnValue({
+      hostname: 'localhost',
+      origin: 'http://localhost:5173',
+      protocol: 'http:',
+    } as Location);
+
+    fetchMock.mockClear();
+    vi.mocked(fetch).mockResolvedValueOnce(jsonResponse({ answer: 'ok', sources: [] }));
+
+    const client = new Client();
+    await client.ask({ question: 'env-absolute' });
+
+    const askUrl = fetchMock.mock.calls.map((c) => String(c[0])).find((u) => u.includes('/ask'));
+    expect(askUrl).toBeDefined();
+    expect(askUrl).toContain('http://127.0.0.1:8004/api/v1/ask');
+    expect(askUrl).toContain('question=env-absolute');
+
+    locationSpy.mockRestore();
+  });
+});
