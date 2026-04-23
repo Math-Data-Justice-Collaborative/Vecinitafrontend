@@ -55,6 +55,13 @@ test.describe('chat gateway smoke (FR-009)', () => {
 
   test('loads chat, streams a turn, exposes lang and keyboard target', async ({ page }) => {
     await installGatewayFixtures(page);
+    const modalRunUrls: string[] = [];
+    page.on('request', (req) => {
+      const url = req.url();
+      if (url.toLowerCase().includes('modal.run')) {
+        modalRunUrls.push(url);
+      }
+    });
     await page.goto('/');
 
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
@@ -69,5 +76,10 @@ test.describe('chat gateway smoke (FR-009)', () => {
     await expect(page.getByText('Smoke streaming reply', { exact: false })).toBeVisible({
       timeout: 30_000,
     });
+
+    expect(
+      modalRunUrls,
+      'main SPA must not call *.modal.run from the browser (SC-002/SC-005)'
+    ).toEqual([]);
   });
 });

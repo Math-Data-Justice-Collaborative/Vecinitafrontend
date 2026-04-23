@@ -229,6 +229,12 @@ newKey: {
 ### Modelos
 Los modelos LLM y de embeddings disponibles se definen en `/src/app/services/modelRegistry.ts`.
 
+### Production API routing (English)
+
+The main SPA must call the **gateway** only (`VITE_GATEWAY_URL` / `VITE_BACKEND_URL`), never internal
+service hosts or `*.modal.run` URLs in `VITE_*` values. Helpers: `src/app/lib/apiBaseResolution.ts`,
+`src/app/lib/frontendViteEnvGuards.ts` (see monorepo `specs/007-scraper-via-dm-api`).
+
 ## Licencia
 
 Este proyecto fue creado para proporcionar información ambiental y comunitaria. Vecinita proporciona información general - siempre verifica con fuentes oficiales.

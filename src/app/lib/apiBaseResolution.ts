@@ -1,3 +1,11 @@
+/**
+ * Resolve the public **gateway** API base for the main SPA (FR-002 / SC-002).
+ *
+ * Render: rewrites mistaken **-agent** hostnames to **-gateway** and normalizes
+ * ``/api`` → ``/api/v1``. Local dev returns configured URLs unchanged.
+ * For bundle hygiene (no ``*.modal.run`` in ``VITE_*``), see ``frontendViteEnvGuards.ts``.
+ */
+
 export function resolveApiBase(
   rawUrl: string,
   locationOverride?: { hostname: string; protocol: string },
