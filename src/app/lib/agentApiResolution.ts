@@ -67,10 +67,6 @@ export function resolveGatewayUrl(rawUrl: string, configuredBackendUrl = ''): st
     const parsed = new URL(trimmedUrl);
     const isRenderGatewayHost =
       parsed.hostname.endsWith('.onrender.com') && parsed.hostname.includes('-gateway');
-    const isConfiguredLocal =
-      parsed.hostname === 'localhost' ||
-      parsed.hostname === '127.0.0.1' ||
-      parsed.hostname === '::1';
     const isGatewayPort = parsed.port === '8004' || parsed.port === '18004';
     const isStaleAbsoluteHost = parsed.hostname !== currentHost;
 
@@ -78,7 +74,10 @@ export function resolveGatewayUrl(rawUrl: string, configuredBackendUrl = ''): st
       return preferredRenderAgentBaseUrl;
     }
 
-    if (isConfiguredLocal || (isGatewayPort && isStaleAbsoluteHost)) {
+    // Only rewrite loopback/stale gateway *origin* for known gateway dev ports.
+    // Arbitrary loopback URLs (e.g. Pact mock `http://127.0.0.1:<ephemeral>/api/v1`)
+    // must keep their hostname so the browser reaches the mock server.
+    if (isGatewayPort && isStaleAbsoluteHost) {
       parsed.hostname = currentHost;
       return parsed.toString();
     }
