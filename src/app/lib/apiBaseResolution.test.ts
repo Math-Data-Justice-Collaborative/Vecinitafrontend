@@ -19,4 +19,14 @@ describe('resolveApiBase (SC-002 gateway-only)', () => {
     });
     expect(resolved).toContain('vecinita-gateway.onrender.com');
   });
+
+  it('rewrites Modal *.modal.run host to Render gateway when SPA runs on Render frontend (FR-012)', () => {
+    const resolved = resolveApiBase('https://acme--vecinita-scraper.modal.run', {
+      hostname: 'vecinita-frontend.onrender.com',
+      protocol: 'https:',
+    });
+    expect(resolved).toContain('vecinita-gateway.onrender.com');
+    expect(resolved).not.toContain('modal.run');
+    expect(resolved).toContain('/api/v1');
+  });
 });

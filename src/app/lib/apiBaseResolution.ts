@@ -116,6 +116,19 @@ export function resolveApiBase(
       return parsed.toString().replace(/\/+$/, '');
     }
 
+    const isModalRunHost = parsed.hostname.endsWith('.modal.run');
+    if (
+      isModalRunHost &&
+      inferredGatewayHost.endsWith('.onrender.com') &&
+      inferredGatewayHost.includes('-gateway')
+    ) {
+      parsed.hostname = inferredGatewayHost;
+      parsed.protocol = 'https:';
+      parsed.port = '';
+      normalizeGatewayPath();
+      return parsed.toString().replace(/\/+$/, '');
+    }
+
     if (isConfiguredLocal || (isGatewayPort && isStaleAbsoluteHost)) {
       parsed.hostname = inferredGatewayHost;
       if (inferredGatewayHost.endsWith('.onrender.com')) {
