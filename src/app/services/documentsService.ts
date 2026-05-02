@@ -1,4 +1,5 @@
 import { parseJsonResponseOrThrow } from '../lib/responseParser';
+import { fetchDocumentsCorpusOverview, type DocumentsCorpusSource } from './documentsCorpusClient';
 
 export interface Source {
   url: string;
@@ -7,6 +8,8 @@ export interface Source {
   tags?: string[];
   download_url?: string;
   downloadable?: boolean;
+  source_of_truth?: string;
+  canonical_visibility_updated_at?: string;
 }
 
 export interface Overview {
@@ -24,12 +27,13 @@ interface TagStatsResponseRow {
 }
 
 export async function fetchDocumentsOverview(apiBase: string): Promise<Overview> {
-  const response = await fetch(`${apiBase}/documents/overview`);
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}`);
-  }
-
-  return parseJsonResponseOrThrow<Overview>(response, '/documents/overview');
+  const payload = await fetchDocumentsCorpusOverview(apiBase);
+  return {
+    sources: (payload.sources ?? []).map((source: DocumentsCorpusSource) => ({
+      ...source,
+      source_of_truth: source.source_of_truth || 'postgres',
+    })),
+  };
 }
 
 export async function fetchDocumentTagStats(apiBase: string, limit = 100): Promise<TagStat[]> {

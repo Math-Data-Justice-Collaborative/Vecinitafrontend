@@ -40,6 +40,8 @@ export function useDocumentsDashboardData(apiBase: string): UseDocumentsDashboar
           return;
         }
 
+        setOverview(null);
+        setTagStats([]);
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
         if (!isCancelled) {

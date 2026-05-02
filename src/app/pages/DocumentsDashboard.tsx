@@ -5,6 +5,11 @@ import { resolveApiBase } from '../lib/apiBaseResolution';
 import { fetchDownloadUrlForSource, type Source } from '../services/documentsService';
 import { useDocumentsDashboardData } from '../hooks/useDocumentsDashboardData';
 import { filterSources, toggleSelectedTag } from '../lib/documentsFilter';
+import {
+  canDownloadDocumentSource,
+  canPerformDocumentMutation,
+} from '../features/documents/actions';
+import { DocumentsOutageState } from '../features/documents/components/DocumentsOutageState';
 
 export { resolveApiBase };
 
@@ -30,6 +35,7 @@ export default function DocumentsDashboard() {
   const [search, setSearch] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [downloadingUrl, setDownloadingUrl] = useState<string | null>(null);
+  const documentsReadOnly = !canPerformDocumentMutation();
 
   const filteredSources = useMemo(() => {
     if (!overview) return [];
@@ -79,11 +85,7 @@ export default function DocumentsDashboard() {
 
   if (error || !overview) {
     return (
-      <main className="flex flex-1 items-center justify-center">
-        <p className="text-destructive">
-          {t('docsLoadFailed')}: {error ?? t('docsUnknownError')}
-        </p>
-      </main>
+      <DocumentsOutageState message={`${t('docsLoadFailed')}: ${error ?? t('docsUnknownError')}`} />
     );
   }
 
@@ -211,17 +213,16 @@ export default function DocumentsDashboard() {
                           {t('docsOpenSource')}
                         </a>
                       )}
-                      {!source.url.startsWith('http') &&
-                        (source.downloadable || source.download_url) && (
-                          <button
-                            onClick={() => handleDownload(source)}
-                            disabled={downloadingUrl === source.url}
-                            className="inline-flex items-center gap-1 rounded border px-2 py-1 text-xs hover:bg-accent disabled:opacity-50"
-                          >
-                            <Download size={12} />
-                            {downloadingUrl === source.url ? '…' : t('docsDownload')}
-                          </button>
-                        )}
+                      {!source.url.startsWith('http') && canDownloadDocumentSource(source) && (
+                        <button
+                          onClick={() => handleDownload(source)}
+                          disabled={downloadingUrl === source.url}
+                          className="inline-flex items-center gap-1 rounded border px-2 py-1 text-xs hover:bg-accent disabled:opacity-50"
+                        >
+                          <Download size={12} />
+                          {downloadingUrl === source.url ? '…' : t('docsDownload')}
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -229,6 +230,11 @@ export default function DocumentsDashboard() {
             </tbody>
           </table>
         </div>
+        {documentsReadOnly && (
+          <p className="px-4 py-3 text-xs text-muted-foreground border-t">
+            Documents tab is read-only and reflects canonical corpus data.
+          </p>
+        )}
       </div>
     </main>
   );

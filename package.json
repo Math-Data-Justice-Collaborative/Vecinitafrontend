@@ -16,6 +16,7 @@
     "test:e2e:install-browsers": "playwright install chromium firefox",
     "pretest:e2e": "npm run test:e2e:install-browsers",
     "test:e2e": "playwright test",
+    "test:e2e:corpus-sync": "playwright test tests/e2e/corpus-parity.spec.ts tests/e2e/documents-readonly.spec.ts tests/e2e/documents-fail-closed.spec.ts --project=chromium-chat-gateway-smoke",
     "pretest:e2e:ui": "npm run test:e2e:install-browsers",
     "test:e2e:ui": "playwright test --ui",
     "lint": "eslint src e2e tests vite.config.ts vitest.config.ts vitest.pact.config.ts playwright.config.ts --ext .ts,.tsx",

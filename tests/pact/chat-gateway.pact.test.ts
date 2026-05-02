@@ -62,9 +62,17 @@ describe('Pact: chat-frontend → vecinita-gateway', () => {
 
     const documentsOverviewBody = {
       sources: MatchersV3.eachLike({
+        id: MatchersV3.like('doc-1'),
         url: MatchersV3.like('https://example.com/community-resource'),
         title: MatchersV3.like('Community Resource'),
         source_domain: MatchersV3.like('example.com'),
+        resource_type: MatchersV3.like('document'),
+        format: MatchersV3.like('HTML'),
+        language: MatchersV3.like('en'),
+        organization: MatchersV3.like('Vecinita'),
+        embedding_status: MatchersV3.like('completed'),
+        source_of_truth: MatchersV3.like('postgres'),
+        canonical_visibility_updated_at: MatchersV3.like('2026-01-01T00:00:00.000Z'),
         tags: MatchersV3.eachLike('community'),
       }),
     };
